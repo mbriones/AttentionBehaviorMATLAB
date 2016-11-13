@@ -1,0 +1,332 @@
+%reading Perceptual Load data and performing Garner and Stroop analyses
+clear all
+Condition = {'Baseline-Low'; 'Baseline-Medium'; 'Baseline-High'; 'Filtering-Low'; 'Filtering-Medium'; 'Filtering-High'; 'NEGCorrelation-Low'; 'NEGCorrelation-Medium'; 'NEGCorrelation-High'; 'POSCorrelation-Low'; 'POSCorrelation-Medium'; 'POSCorrelation-High'; };
+SubInfo = 'C:\Users\PSS\Desktop\Attention Study\Sandwich\MatlabAnalysis\SandwichFileNames.txt';
+[SubNum] = textread([SubInfo], '%s','delimiter','\t','whitespace',' \n');
+AnalysisDirectory = 'C:\Users\PSS\Desktop\Attention Study\Sandwich\MatlabAnalysis\';
+SaveGarnerRTmean = strcat(AnalysisDirectory,'GarnerRTmean.txt');
+SaveGarnerRTstd = strcat(AnalysisDirectory,'GarnerRTstd.txt');
+SaveGarnerACC = strcat(AnalysisDirectory,'GarnerACC.txt');
+SaveStroopRTmean = strcat(AnalysisDirectory,'StroopRTmean.txt');
+SaveStroopACC = strcat(AnalysisDirectory,'StroopACC.txt');
+SaveSequenceRT = strcat(AnalysisDirectory,'SequenceRTmean.txt');
+SaveSequenceACC = strcat(AnalysisDirectory,'SequenceACC.txt');
+SaveJitter1RT = strcat(AnalysisDirectory,'Jitter1RTmean.txt');
+SaveJitter2RT = strcat(AnalysisDirectory,'Jitter2RTmean.txt');
+SaveJitter3RT = strcat(AnalysisDirectory,'Jitter3RTmean.txt');
+SaveJitter1ACC = strcat(AnalysisDirectory,'Jitter1ACC.txt');
+SaveJitter2ACC = strcat(AnalysisDirectory,'Jitter2ACC.txt');
+SaveJitter3ACC = strcat(AnalysisDirectory,'Jitter3ACC.txt');
+
+for Subject = 1:24
+%Subject =1;
+
+	CondRT = zeros(1,12);
+	CondSTD = zeros(1,12);
+	CondACC = zeros(1,12);
+	CongRTmean = zeros(1,27);
+	CongACC = zeros(1,27);
+	SeqRTmean = zeros(1,72);
+	SeqACC = zeros(1,72);
+	Jitter1RTmean = zeros(1,60);
+	Jitter2RTmean = zeros(1,60);
+	Jitter3RTmean = zeros(1,60);
+	Jitter1ACC = zeros(1,60);
+	Jitter2ACC = zeros(1,60);
+	Jitter3ACC = zeros(1,60);
+   
+	for CondNum = 1:12
+	%CondNum = 1;
+   	CondString = Condition{CondNum};
+      %for Block = 1:3
+      %   DotBlock=''; for i = 1:Block DotBlock = strcat(DotBlock, '.'); end
+   		ReadName=strcat(SubNum{Subject},CondString,'.txt');    
+   		SaveName=strcat(SubNum{Subject},'Total',CondString,'.txt');
+			ReadDirectory = strcat('C:\Users\PSS\Desktop\Attention Study\Sandwich\Data\',SubNum{Subject},'\',ReadName);
+      	SaveDirectory = strcat('C:\Users\PSS\Desktop\Attention Study\Sandwich\Data\',SubNum{Subject},'\',SaveName);
+			fid1 = fopen(ReadDirectory, 'r');
+   		fid2 = fopen(SaveDirectory, 'a');
+   		line = fgets(fid1);
+   		stopString = 'trial1';
+   			while ~feof(fid1)
+      		line = fgets(fid1);
+      		A = sscanf(line,'%s',1);
+      			if strcmp(A, stopString)
+        		 		break
+      			end
+      		fprintf(fid2,'%s',line);
+				end
+   		fclose(fid1);
+      	fclose(fid2);
+      %end %Block loop
+      
+      %Garner Analyses
+      [TrialNum  CondName Resp_1 RT CorrResp StimName  Resp_2 CondType TrigNum Jitter1 Jitter2 Jitter3] = textread([SaveDirectory], '%d %s %d %f %s %s %d %s %d %d %d %d','delimiter','\t','whitespace',' \n');
+         Count = 0;
+         for i = 1:length(RT)
+            Trigger(i) = TrigNum(i);
+         end
+         for i = 1:length(RT)
+            while Trigger(i)>10 Trigger(i) = Trigger(i) - 10; end
+
+     				if (RT(i)<100) | (RT(i)>1600) | (abs(Resp_1(i)-Resp_2(i))>0)
+               	RT(i) = NaN;
+                  Count = Count + 1;
+      	 		end
+  			end
+              RTmean = nanmean(RT);
+              RTstd = nanstd(RT);
+              ACC = (length(RT)-Count)/length(RT)*100;
+            CondRT(CondNum) = RTmean;
+            CondSTD(CondNum) = RTstd;
+            CondACC(CondNum) = ACC;
+            
+         % Jitter Analysis - Jitter1
+   		JitterRT=zeros(1,5); JitterCount = zeros(1,5); JitterTot = zeros(1,5);
+   		for i = 1:length(Jitter1)
+         	if (Jitter1(i)>2) & (Jitter1(i)<49)
+            	JitterTot(1) = JitterTot(1) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(1) = JitterCount(1) + 1; JitterRT(1) = RT(i) + JitterRT(1);
+               end
+            end
+         	if (Jitter1(i)>50) & (Jitter1(i)<97)
+            	JitterTot(2) = JitterTot(2) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(2) = JitterCount(2) + 1; JitterRT(2) = RT(i) + JitterRT(2);
+               end
+            end
+         	if (Jitter1(i)>98) & (Jitter1(i)<145)
+            	JitterTot(3) = JitterTot(3) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(3) = JitterCount(3) + 1; JitterRT(3) = RT(i) + JitterRT(3);
+               end
+            end
+         	if (Jitter1(i)>146) & (Jitter1(i)<193)
+            	JitterTot(4) = JitterTot(4) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(4) = JitterCount(4) + 1; JitterRT(4) = RT(i) + JitterRT(4);
+               end
+            end
+         	if (Jitter1(i)>194) & (Jitter1(i)<241)
+            	JitterTot(5) = JitterTot(5) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(5) = JitterCount(5) + 1; JitterRT(5) = RT(i) + JitterRT(5);
+               end
+            end
+         end
+         JitterMean = JitterRT ./ JitterCount;
+         JitterPercent  = JitterCount ./ JitterTot * 100;
+       	for i = 1:length(JitterRT)
+			Jitter1RTmean((CondNum-1)*length(JitterRT)+i) = JitterMean(i);
+         	Jitter1ACC((CondNum-1)*length(JitterRT)+i) = JitterPercent(i);
+         end
+         
+         % Jitter Analysis - Jitter2
+         JitterRT=zeros(1,5); JitterCount = zeros(1,5); JitterTot = zeros(1,5);
+   		for i = 1:length(Jitter1)
+         	if (Jitter2(i)>2) & (Jitter2(i)<49)
+            	JitterTot(1) = JitterTot(1) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(1) = JitterCount(1) + 1; JitterRT(1) = RT(i) + JitterRT(1);
+               end
+            end
+         	if (Jitter2(i)>50) & (Jitter2(i)<97)
+            	JitterTot(2) = JitterTot(2) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(2) = JitterCount(2) + 1; JitterRT(2) = RT(i) + JitterRT(2);
+               end
+            end
+         	if (Jitter2(i)>98) & (Jitter2(i)<145)
+            	JitterTot(3) = JitterTot(3) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(3) = JitterCount(3) + 1; JitterRT(3) = RT(i) + JitterRT(3);
+               end
+            end
+         	if (Jitter2(i)>146) & (Jitter2(i)<193)
+            	JitterTot(4) = JitterTot(4) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(4) = JitterCount(4) + 1; JitterRT(4) = RT(i) + JitterRT(4);
+               end
+            end
+         	if (Jitter2(i)>194) & (Jitter2(i)<241)
+            	JitterTot(5) = JitterTot(5) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(5) = JitterCount(5) + 1; JitterRT(5) = RT(i) + JitterRT(5);
+               end
+            end
+         end
+         JitterMean = JitterRT ./ JitterCount;
+         JitterPercent  = JitterCount ./ JitterTot * 100;
+       	for i = 1:length(JitterRT)
+				Jitter2RTmean((CondNum-1)*length(JitterRT)+i) = JitterMean(i);
+         	Jitter2ACC((CondNum-1)*length(JitterRT)+i) = JitterPercent(i);
+         end
+         
+         % Jitter Analysis - Jitter3
+         JitterRT=zeros(1,5); JitterCount = zeros(1,5); JitterTot = zeros(1,5);
+   		for i = 1:length(Jitter1)
+         	if (Jitter3(i)>2) & (Jitter3(i)<49)
+            	JitterTot(1) = JitterTot(1) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(1) = JitterCount(1) + 1; JitterRT(1) = RT(i) + JitterRT(1);
+               end
+            end
+         	if (Jitter3(i)>50) & (Jitter3(i)<97)
+            	JitterTot(2) = JitterTot(2) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(2) = JitterCount(2) + 1; JitterRT(2) = RT(i) + JitterRT(2);
+               end
+            end
+         	if (Jitter3(i)>98) & (Jitter3(i)<145)
+            	JitterTot(3) = JitterTot(3) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(3) = JitterCount(3) + 1; JitterRT(3) = RT(i) + JitterRT(3);
+               end
+            end
+         	if (Jitter3(i)>146) & (Jitter3(i)<193)
+            	JitterTot(4) = JitterTot(4) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(4) = JitterCount(4) + 1; JitterRT(4) = RT(i) + JitterRT(4);
+               end
+            end
+         	if (Jitter3(i)>194) & (Jitter3(i)<241)
+            	JitterTot(5) = JitterTot(5) + 1;
+               if isnan(RT(i))==0
+               	JitterCount(5) = JitterCount(5) + 1; JitterRT(5) = RT(i) + JitterRT(5);
+               end
+            end
+         end
+         JitterMean = JitterRT ./ JitterCount;
+         JitterPercent  = JitterCount ./ JitterTot * 100;
+       	for i = 1:length(JitterRT)
+				Jitter3RTmean((CondNum-1)*length(JitterRT)+i) = JitterMean(i);
+         	Jitter3ACC((CondNum-1)*length(JitterRT)+i) = JitterPercent(i);
+         end
+         
+            
+      % Stroop Analysis of Filtering Tasks
+   	if CondNum>3
+         CongRT=zeros(1,3); CongCount = zeros(1,3); TotCount = zeros(1,3);
+         for i = 1:length(TrigNum)
+         	if (Trigger(i)==1) | (Trigger(i)==2) %Congruent
+            	TotCount(1) = TotCount(1) + 1;
+               if isnan(RT(i))==0
+               	CongCount(1) = CongCount(1) + 1; CongRT(1) = RT(i) + CongRT(1);
+               end
+            end
+         	if (Trigger(i)==3) | (Trigger(i)==4) %Neutral
+            	TotCount(2) = TotCount(2) + 1;
+               if isnan(RT(i))==0
+               	CongCount(2) = CongCount(2) + 1; CongRT(2) = RT(i) + CongRT(2);
+               end
+            end
+         	if (Trigger(i)==5) | (Trigger(i)==6) %Incongruent
+            	TotCount(3) = TotCount(3) + 1;
+               if isnan(RT(i))==0
+               	CongCount(3) = CongCount(3) + 1; CongRT(3) = RT(i) + CongRT(3);
+               end
+            end
+        	end
+         CongMean = CongRT ./ CongCount;
+         CongPercent  = CongCount ./ TotCount * 100;
+       	for i = 1:length(CongRT)
+			CongRTmean((CondNum-4)*length(CongRT)+i) = CongMean(i);
+         	CongACC((CondNum-4)*length(CongRT)+i) = CongPercent(i);
+         end
+         
+         %Recovery Analysis of Filtering Tasks
+         for i = 1:length(RT)
+  		 		if isnan(RT(i)) 
+     			   RT(i) = RTmean;
+     			end
+         end
+         
+   		SeqRT=zeros(1,8); SeqCount = zeros(1,8); TotSeq = zeros(1,8);
+   	CC='CC';CI='CI';IC='IC';II='II';NC='Nc';NN='NN';NI='NI';Err='Err';
+			for i = 1:length(TrigNum)
+       		CondType{i} = Err;
+				if (TrigNum(i)==103) | (TrigNum(i)==104)
+         		TrigNum(i) = 1; 
+                end
+            end
+   	SeqType(1) = 8;
+        for i = 2:length(TrigNum)
+      		SeqNum = (TrigNum(i)+TrigNum(i-1)-200);
+      		SeqDiv = TrigNum(i)/TrigNum(i-1);
+         
+           if (SeqNum < 0) SeqType(i)=8; %Neutral trials
+                elseif (1<SeqNum) & (SeqNum<5) SeqType(i)=1; %CC
+        		elseif ((SeqNum > 9) & (SeqNum < 13)) SeqType(i)=6; %II
+         		elseif ((SeqDiv > 1.02)&(SeqDiv < 1.06)) & ((5.1 < SeqNum) & (SeqNum < 8.1)) SeqType(i)=5; %IC
+          		elseif ((SeqDiv > .96)&(SeqDiv < .98)) & ((5.1 < SeqNum)& (SeqNum < 8.1)) SeqType(i)=2; %CI
+           	end
+           	if (SeqDiv == 101) | (SeqDiv == 102) SeqType(i)=3; %NC
+                elseif (SeqDiv == 1) & (SeqNum<1) SeqType(i)=7; %NN
+                elseif (SeqDiv == 105) | (SeqDiv == 106) SeqType(i)=4; %NI
+           	end
+      
+        end 
+
+ 		for i = 2:length(TrigNum)
+            for j = 1:8
+                if SeqType(i)==j TotSeq(j) = TotSeq(j)+1;
+                    if (Resp_1(i)==Resp_2(i)) SeqRT(j) = RT(i)+ SeqRT(j); SeqCount(j) = SeqCount(j) + 1; end
+                end
+            end
+        end
+        
+         SeqMean = SeqRT ./ SeqCount;
+         SeqPercent  = SeqCount ./ TotSeq * 100;
+        
+        for i = 1:length(SeqRT)
+					SeqRTmean((CondNum-4)*length(SeqRT)+i) = SeqMean(i);
+					SeqACC((CondNum-4)*length(SeqRT)+i) = SeqPercent(i);
+        end
+        
+      end  %if CondNum>3
+      
+end %CondNum loop
+			%Save files for statistical analysis
+  			fid3 = fopen(SaveGarnerRTmean, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', CondRT(1), CondRT(2), CondRT(3), CondRT(4), CondRT(5), CondRT(6), CondRT(7), CondRT(8), CondRT(9), CondRT(10), CondRT(11), CondRT(12));
+      	fclose(fid3);
+  			fid3 = fopen(SaveGarnerRTstd, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', CondSTD(1), CondSTD(2), CondSTD(3), CondSTD(4), CondSTD(5), CondSTD(6), CondSTD(7), CondSTD(8), CondSTD(9), CondSTD(10), CondSTD(11), CondSTD(12));
+      	fclose(fid3);
+  			fid3 = fopen(SaveGarnerACC, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', CondACC(1), CondACC(2), CondACC(3), CondACC(4), CondACC(5), CondACC(6), CondACC(7), CondACC(8), CondACC(9), CondACC(10), CondACC(11), CondACC(12));
+      	fclose(fid3);
+   		fid3 = fopen(SaveStroopRTmean, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', CongRTmean(1), CongRTmean(2), CongRTmean(3), CongRTmean(4), CongRTmean(5), CongRTmean(6),  CongRTmean(7), CongRTmean(8), CongRTmean(9),CongRTmean(10), CongRTmean(11), CongRTmean(12), CongRTmean(13), CongRTmean(14), CongRTmean(15),  CongRTmean(16), CongRTmean(17), CongRTmean(18), CongRTmean(19), CongRTmean(20), CongRTmean(21), CongRTmean(22), CongRTmean(23), CongRTmean(24),  CongRTmean(25), CongRTmean(26), CongRTmean(27));
+      	fclose(fid3);
+   		fid3 = fopen(SaveStroopACC, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', CongACC(1), CongACC(2), CongACC(3), CongACC(4), CongACC(5), CongACC(6), CongACC(7), CongACC(8), CongACC(9), CongACC(10), CongACC(11), CongACC(12), CongACC(13), CongACC(14), CongACC(15),  CongACC(16), CongACC(17), CongACC(18), CongACC(19), CongACC(20), CongACC(21), CongACC(22), CongACC(23), CongACC(24),  CongACC(25), CongACC(26), CongACC(27));
+      	fclose(fid3);
+    		fid3 = fopen(SaveSequenceRT, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', SeqRTmean(1), SeqRTmean(2), SeqRTmean(3), SeqRTmean(4), SeqRTmean(5), SeqRTmean(6), SeqRTmean(7), SeqRTmean(8), SeqRTmean(9), SeqRTmean(10), SeqRTmean(11), SeqRTmean(12), SeqRTmean(13), SeqRTmean(14), SeqRTmean(15), SeqRTmean(16), SeqRTmean(17), SeqRTmean(18), SeqRTmean(19), SeqRTmean(20), SeqRTmean(21), SeqRTmean(22), SeqRTmean(23), SeqRTmean(24), SeqRTmean(25), SeqRTmean(26), SeqRTmean(27), SeqRTmean(28), SeqRTmean(29), SeqRTmean(30), SeqRTmean(31), SeqRTmean(32), SeqRTmean(33), SeqRTmean(34), SeqRTmean(35), SeqRTmean(36), SeqRTmean(37), SeqRTmean(38), SeqRTmean(39), SeqRTmean(40), SeqRTmean(41), SeqRTmean(42), SeqRTmean(43), SeqRTmean(44), SeqRTmean(45), SeqRTmean(46), SeqRTmean(47), SeqRTmean(48), SeqRTmean(49), SeqRTmean(50), SeqRTmean(51), SeqRTmean(52), SeqRTmean(53), SeqRTmean(54), SeqRTmean(55), SeqRTmean(56), SeqRTmean(57), SeqRTmean(58), SeqRTmean(59), SeqRTmean(60), SeqRTmean(61), SeqRTmean(62), SeqRTmean(63), SeqRTmean(64), SeqRTmean(65), SeqRTmean(66), SeqRTmean(67), SeqRTmean(68), SeqRTmean(69), SeqRTmean(70), SeqRTmean(71), SeqRTmean(72));
+      	fclose(fid3);
+    		fid3 = fopen(SaveSequenceACC, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', SeqACC(1), SeqACC(2), SeqACC(3), SeqACC(4), SeqACC(5), SeqACC(6), SeqACC(7), SeqACC(8), SeqACC(9), SeqACC(10), SeqACC(11), SeqACC(12), SeqACC(13), SeqACC(14), SeqACC(15), SeqACC(16), SeqACC(17), SeqACC(18), SeqACC(19), SeqACC(20), SeqACC(21), SeqACC(22), SeqACC(23), SeqACC(24), SeqACC(25), SeqACC(26), SeqACC(27), SeqACC(28), SeqACC(29), SeqACC(30), SeqACC(31), SeqACC(32), SeqACC(33), SeqACC(34), SeqACC(35), SeqACC(36), SeqACC(37), SeqACC(38), SeqACC(39), SeqACC(40), SeqACC(41), SeqACC(42), SeqACC(43), SeqACC(44), SeqACC(45), SeqACC(46), SeqACC(47), SeqACC(48), SeqACC(49), SeqACC(50), SeqACC(51), SeqACC(52), SeqACC(53), SeqACC(54), SeqACC(55), SeqACC(56), SeqACC(57), SeqACC(58), SeqACC(59), SeqACC(60),SeqACC(61), SeqACC(62), SeqACC(63), SeqACC(64), SeqACC(65), SeqACC(66), SeqACC(67), SeqACC(68), SeqACC(69),SeqACC(70), SeqACC(71), SeqACC(72));
+      	fclose(fid3);
+    		fid3 = fopen(SaveJitter1RT, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', Jitter1RTmean(1), Jitter1RTmean(2), Jitter1RTmean(3), Jitter1RTmean(4), Jitter1RTmean(5), Jitter1RTmean(6), Jitter1RTmean(7), Jitter1RTmean(8), Jitter1RTmean(9), Jitter1RTmean(10), Jitter1RTmean(11), Jitter1RTmean(12), Jitter1RTmean(13), Jitter1RTmean(14), Jitter1RTmean(15), Jitter1RTmean(16), Jitter1RTmean(17), Jitter1RTmean(18), Jitter1RTmean(19), Jitter1RTmean(20), Jitter1RTmean(21), Jitter1RTmean(22), Jitter1RTmean(23), Jitter1RTmean(24), Jitter1RTmean(25), Jitter1RTmean(26), Jitter1RTmean(27), Jitter1RTmean(28), Jitter1RTmean(29), Jitter1RTmean(30), Jitter1RTmean(31), Jitter1RTmean(32), Jitter1RTmean(33), Jitter1RTmean(34), Jitter1RTmean(35), Jitter1RTmean(36), Jitter1RTmean(37), Jitter1RTmean(38), Jitter1RTmean(39), Jitter1RTmean(40), Jitter1RTmean(41), Jitter1RTmean(42), Jitter1RTmean(43), Jitter1RTmean(44), Jitter1RTmean(45), Jitter1RTmean(46), Jitter1RTmean(47), Jitter1RTmean(48), Jitter1RTmean(49), Jitter1RTmean(50), Jitter1RTmean(51), Jitter1RTmean(52), Jitter1RTmean(53), Jitter1RTmean(54), Jitter1RTmean(55), Jitter1RTmean(56), Jitter1RTmean(57), Jitter1RTmean(58), Jitter1RTmean(59), Jitter1RTmean(60));
+      	fclose(fid3);
+    		fid3 = fopen(SaveJitter2RT, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', Jitter2RTmean(1), Jitter2RTmean(2), Jitter2RTmean(3), Jitter2RTmean(4), Jitter2RTmean(5), Jitter2RTmean(6), Jitter2RTmean(7), Jitter2RTmean(8), Jitter2RTmean(9), Jitter2RTmean(10), Jitter2RTmean(11), Jitter2RTmean(12), Jitter2RTmean(13), Jitter2RTmean(14), Jitter2RTmean(15), Jitter2RTmean(16), Jitter2RTmean(17), Jitter2RTmean(18), Jitter2RTmean(19), Jitter2RTmean(20), Jitter2RTmean(21), Jitter2RTmean(22), Jitter2RTmean(23), Jitter2RTmean(24), Jitter2RTmean(25), Jitter2RTmean(26), Jitter2RTmean(27), Jitter2RTmean(28), Jitter2RTmean(29), Jitter2RTmean(30), Jitter2RTmean(31), Jitter2RTmean(32), Jitter2RTmean(33), Jitter2RTmean(34), Jitter2RTmean(35), Jitter2RTmean(36), Jitter2RTmean(37), Jitter2RTmean(38), Jitter2RTmean(39), Jitter2RTmean(40), Jitter2RTmean(41), Jitter2RTmean(42), Jitter2RTmean(43), Jitter2RTmean(44), Jitter2RTmean(45), Jitter2RTmean(46), Jitter2RTmean(47), Jitter2RTmean(48), Jitter2RTmean(49), Jitter2RTmean(50), Jitter2RTmean(51), Jitter2RTmean(52), Jitter2RTmean(53), Jitter2RTmean(54), Jitter2RTmean(55), Jitter2RTmean(56), Jitter2RTmean(57), Jitter2RTmean(58), Jitter2RTmean(59), Jitter2RTmean(60));
+      	fclose(fid3);
+    		fid3 = fopen(SaveJitter3RT, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', Jitter3RTmean(1), Jitter3RTmean(2), Jitter3RTmean(3), Jitter3RTmean(4), Jitter3RTmean(5), Jitter3RTmean(6), Jitter3RTmean(7), Jitter3RTmean(8), Jitter3RTmean(9), Jitter3RTmean(10), Jitter3RTmean(11), Jitter3RTmean(12), Jitter3RTmean(13), Jitter3RTmean(14), Jitter3RTmean(15), Jitter3RTmean(16), Jitter3RTmean(17), Jitter3RTmean(18), Jitter3RTmean(19), Jitter3RTmean(20), Jitter3RTmean(21), Jitter3RTmean(22), Jitter3RTmean(23), Jitter3RTmean(24), Jitter3RTmean(25), Jitter3RTmean(26), Jitter3RTmean(27), Jitter3RTmean(28), Jitter3RTmean(29), Jitter3RTmean(30), Jitter3RTmean(31), Jitter3RTmean(32), Jitter3RTmean(33), Jitter3RTmean(34), Jitter3RTmean(35), Jitter3RTmean(36), Jitter3RTmean(37), Jitter3RTmean(38), Jitter3RTmean(39), Jitter3RTmean(40), Jitter3RTmean(41), Jitter3RTmean(42), Jitter3RTmean(43), Jitter3RTmean(44), Jitter3RTmean(45), Jitter3RTmean(46), Jitter3RTmean(47), Jitter3RTmean(48), Jitter3RTmean(49), Jitter3RTmean(50), Jitter3RTmean(51), Jitter3RTmean(52), Jitter3RTmean(53), Jitter3RTmean(54), Jitter3RTmean(55), Jitter3RTmean(56), Jitter3RTmean(57), Jitter3RTmean(58), Jitter3RTmean(59), Jitter3RTmean(60));
+      	fclose(fid3);
+    		fid3 = fopen(SaveJitter1ACC, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', Jitter1ACC(1), Jitter1ACC(2), Jitter1ACC(3), Jitter1ACC(4), Jitter1ACC(5), Jitter1ACC(6), Jitter1ACC(7), Jitter1ACC(8), Jitter1ACC(9), Jitter1ACC(10), Jitter1ACC(11), Jitter1ACC(12), Jitter1ACC(13), Jitter1ACC(14), Jitter1ACC(15), Jitter1ACC(16), Jitter1ACC(17), Jitter1ACC(18), Jitter1ACC(19), Jitter1ACC(20), Jitter1ACC(21), Jitter1ACC(22), Jitter1ACC(23), Jitter1ACC(24), Jitter1ACC(25), Jitter1ACC(26), Jitter1ACC(27), Jitter1ACC(28), Jitter1ACC(29), Jitter1ACC(30), Jitter1ACC(31), Jitter1ACC(32), Jitter1ACC(33), Jitter1ACC(34), Jitter1ACC(35), Jitter1ACC(36), Jitter1ACC(37), Jitter1ACC(38), Jitter1ACC(39), Jitter1ACC(40), Jitter1ACC(41), Jitter1ACC(42), Jitter1ACC(43), Jitter1ACC(44), Jitter1ACC(45), Jitter1ACC(46), Jitter1ACC(47), Jitter1ACC(48), Jitter1ACC(49), Jitter1ACC(50), Jitter1ACC(51), Jitter1ACC(52), Jitter1ACC(53), Jitter1ACC(54), Jitter1ACC(55), Jitter1ACC(56), Jitter1ACC(57), Jitter1ACC(58), Jitter1ACC(59), Jitter1ACC(60));
+      	fclose(fid3);
+    		fid3 = fopen(SaveJitter2ACC, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', Jitter2ACC(1), Jitter2ACC(2), Jitter2ACC(3), Jitter2ACC(4), Jitter2ACC(5), Jitter2ACC(6), Jitter2ACC(7), Jitter2ACC(8), Jitter2ACC(9), Jitter2ACC(10), Jitter2ACC(11), Jitter2ACC(12), Jitter2ACC(13), Jitter2ACC(14), Jitter2ACC(15), Jitter2ACC(16), Jitter2ACC(17), Jitter2ACC(18), Jitter2ACC(19), Jitter2ACC(20), Jitter2ACC(21), Jitter2ACC(22), Jitter2ACC(23), Jitter2ACC(24), Jitter2ACC(25), Jitter2ACC(26), Jitter2ACC(27), Jitter2ACC(28), Jitter2ACC(29), Jitter2ACC(30), Jitter2ACC(31), Jitter2ACC(32), Jitter2ACC(33), Jitter2ACC(34), Jitter2ACC(35), Jitter2ACC(36), Jitter2ACC(37), Jitter2ACC(38), Jitter2ACC(39), Jitter2ACC(40), Jitter2ACC(41), Jitter2ACC(42), Jitter2ACC(43), Jitter2ACC(44), Jitter2ACC(45), Jitter2ACC(46), Jitter2ACC(47), Jitter2ACC(48), Jitter2ACC(49), Jitter2ACC(50), Jitter2ACC(51), Jitter2ACC(52), Jitter2ACC(53), Jitter2ACC(54), Jitter2ACC(55), Jitter2ACC(56), Jitter2ACC(57), Jitter2ACC(58), Jitter2ACC(59), Jitter2ACC(60));
+      	fclose(fid3);
+    		fid3 = fopen(SaveJitter3ACC, 'a');
+   		fprintf(fid3, '%f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', Jitter3ACC(1), Jitter3ACC(2), Jitter3ACC(3), Jitter3ACC(4), Jitter3ACC(5), Jitter3ACC(6), Jitter3ACC(7), Jitter3ACC(8), Jitter3ACC(9), Jitter3ACC(10), Jitter3ACC(11), Jitter3ACC(12), Jitter3ACC(13), Jitter3ACC(14), Jitter3ACC(15), Jitter3ACC(16), Jitter3ACC(17), Jitter3ACC(18), Jitter3ACC(19), Jitter3ACC(20), Jitter3ACC(21), Jitter3ACC(22), Jitter3ACC(23), Jitter3ACC(24), Jitter3ACC(25), Jitter3ACC(26), Jitter3ACC(27), Jitter3ACC(28), Jitter3ACC(29), Jitter3ACC(30), Jitter3ACC(31), Jitter3ACC(32), Jitter3ACC(33), Jitter3ACC(34), Jitter3ACC(35), Jitter3ACC(36), Jitter3ACC(37), Jitter3ACC(38), Jitter3ACC(39), Jitter3ACC(40), Jitter3ACC(41), Jitter3ACC(42), Jitter3ACC(43), Jitter3ACC(44), Jitter3ACC(45), Jitter3ACC(46), Jitter3ACC(47), Jitter3ACC(48), Jitter3ACC(49), Jitter3ACC(50), Jitter3ACC(51), Jitter3ACC(52), Jitter3ACC(53), Jitter3ACC(54), Jitter3ACC(55), Jitter3ACC(56), Jitter3ACC(57), Jitter3ACC(58), Jitter3ACC(59), Jitter3ACC(60));
+      	fclose(fid3);
+end %Subject loop
+         
+
